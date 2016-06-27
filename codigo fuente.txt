@@ -1,0 +1,81 @@
+//Programa de Evaluación
+
+#include <locale.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <pthread.h>
+
+#define time 5           //Se define el tiempo en segundos que tarda en imprimir cada vehiculo al pasar
+#define seconds 5        //Se define el tiempo maximo en segundos que puede tardar en llegar otro vehiculo
+
+int *punteroA,*punteroB;  //Punteros que indican 1 si ha llegado un vehiculo o un 0 si no lo ha hecho
+
+
+
+void *colaA(int *arg){    //Esta funcion asigna un "true" en un lapso de tiempo aleatorio representando llegada de un vehiculo a la izquierda
+   arg = rand() % seconds;  
+   sleep(time);
+   arg = rand() % seconds;
+   punteroA = 1;
+   colaA(arg);
+}
+
+void *colaB(int *arg){    //Esta funcion asigna un "true" en un lapso de tiempo aleatorio representando llegada de un vehiculo a la derecha
+   arg = rand() % seconds; 
+   sleep(time);
+   arg = rand() % seconds;
+   punteroB = 1;
+   colaB(arg);
+}
+
+void pasarpuente(contA,contB,total){ //Esta funcion compara las dos cantidades de vehiculos en ambos sentidos, despues disminuye o aumenta las listas conforme se requiera
+	if(punteroA == 1){
+		contA ++;
+		punteroA = 0;
+	}
+	if(punteroB == 1){
+		contB ++;
+		punteroB = 0;
+	}
+   printf("vehiculos a la izquierda esperando: %i\n",contA);
+   printf("vehiculos a la derecha esperando: %i\n\n",contB);
+  if(contA >= contB && contA != 0){
+    	--contA;
+  	    ++total;
+       printf("vehiculo %i entra por la izquierda \n",total);
+       printf("vehiculo %i pasa puente \n",total);
+       printf("vehiculo %i sale por la izquierda \n\n",total);
+	   //sleep(time);
+       pasarpuente(contA,contB,total);
+  }else{
+  if(contB >= contA && contB != 0){
+  	   --contB;
+	   ++total;
+  	   printf("vehiculo %i entra por la derecha \n",total);
+       printf("vehiculo %i pasa puente \n",total);
+       printf("vehiculo %i sale por la derecha \n\n",total);
+       //sleep(time);
+       pasarpuente(contA,contB,total);
+  }
+}}
+
+
+int main(void){
+	pthread_t h1; 
+	pthread_t h2; 
+	int param1,param2;
+	printf("Ingrese el valor inicial de vehiculos al lado izquierdo: ",param1);
+	scanf ("%i.\nl", &param1);
+	printf("Ingrese el valor inicial de vehiculos al lado derecho: ",param2);
+	scanf ("%i.\nl", &param2);
+	int alea;
+	pthread_create (&h1,NULL,colaA,(void*)alea);//AQUI SE CREA EL HILO EN DONDE VA A ESTAR EL PROCESO ENCARGADO DE LOS VEHICULOS QUE LLEGAN ALEATORIAMENTE A LA IZQUIERDA
+	pthread_create (&h2,NULL,colaB,(void*)alea);//AQUI SE CREA EL HILO EN DONDE VA A ESTAR EL PROCESO ENCARGADO DE LOS VEHICULOS QUE LLEGAN ALEATORIAMENTE A LA DERECHA
+    pasarpuente(param1,param2,0);
+    system("pause");
+    pthread_join(h1,NULL);
+    pthread_join(h2,NULL);
+   return 0;
+}
